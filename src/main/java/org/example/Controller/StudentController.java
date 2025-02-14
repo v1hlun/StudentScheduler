@@ -1,5 +1,6 @@
 package org.example.Controller;
 
+import lombok.AllArgsConstructor;
 import org.example.Service.StudentService;
 import org.example.model.Student;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +12,8 @@ import java.util.Objects;
 
 
 @RestController
-@RequestMapping("/students")
+@RequestMapping("/api/students")
+@AllArgsConstructor
 public class StudentController {
     @Autowired
     private StudentService studentService;
@@ -40,5 +42,8 @@ public class StudentController {
     public Student patchStudent(@PathVariable Long id, @RequestBody Map<String, Object> updates){
         return studentService.patchStudent(id, updates);
     }
+
+    @DeleteMapping("/{id}")
+    public void deleteStudent(@PathVariable Long id){studentService.deleteStudentById(id);}
 
 }

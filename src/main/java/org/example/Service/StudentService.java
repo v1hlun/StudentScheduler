@@ -26,9 +26,9 @@ public class StudentService {
                 .orElseThrow(() -> new RuntimeException("Student not found"))  ;
     }
 
-    public Student getStudentByName(String name){
+    /*public Student getStudentByName(String name){
         return studentRepository.findByFullName(name);
-    }
+    }*/
 
     public List<Student> getAllStudents(){
         return studentRepository.findAll();
@@ -78,4 +78,6 @@ public class StudentService {
         });
         return studentRepository.save(student);
     }
+
+    public void deleteStudentById(Long studentId){studentRepository.deleteById(studentId);}
 }

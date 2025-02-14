@@ -43,6 +43,4 @@ public class Distribution {
     private String periodCompulsoryService;
     private String selfCare;
     private String consolidation;
-
-    // Геттеры и сеттеры
 }
