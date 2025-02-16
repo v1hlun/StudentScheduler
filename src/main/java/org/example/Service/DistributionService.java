@@ -30,8 +30,8 @@ public class DistributionService {
     }
 
     public Distribution getDistributionById(Long id){
-        return distributionRepository.findByStudentId(id).
-                orElseThrow(() -> new RuntimeException("Student not found"));
+        return distributionRepository.findByStudentId(id)
+                .orElseThrow(() -> new RuntimeException("Student not found"));
     }
 
     public List<Distribution> getAllDistribution(){return distributionRepository.findAll();}
@@ -71,7 +71,7 @@ public class DistributionService {
 
 
 
-    public void deleteDistributionById(Long id){
+    public void deleteDistribution(Long id){
         if(!distributionRepository.existsById(id)){throw new RuntimeException("No distribution with such id");}
         distributionRepository.deleteById(id);}
 

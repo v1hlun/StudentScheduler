@@ -35,6 +35,6 @@ public class DistributionController {
     }
 
     @DeleteMapping("/delete/{id}")
-    public void deleteDistribution(@PathVariable Long id){distributionService.deleteDistributionById(id);}
+    public void deleteDistribution(@PathVariable Long id){distributionService.deleteDistribution(id);}
 
 }
