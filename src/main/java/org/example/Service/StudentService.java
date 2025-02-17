@@ -4,8 +4,11 @@ import lombok.AllArgsConstructor;
 import org.example.Repository.StudentRepository;
 import org.example.model.Student;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PatchMapping;
 
 import java.util.List;
 import java.util.Map;
@@ -26,9 +29,10 @@ public class StudentService {
                 .orElseThrow(() -> new RuntimeException("Student not found"))  ;
     }
 
-    /*public Student getStudentByName(String name){
-        return studentRepository.findByFullName(name);
-    }*/
+    public Slice<Student> getStudentsWithPagination(int page, int size, String sortBy){
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
+        return studentRepository.findBy(pageable);
+    }
 
     public List<Student> getAllStudents(){
         return studentRepository.findAll();

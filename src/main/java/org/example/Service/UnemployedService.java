@@ -3,9 +3,13 @@ package org.example.Service;
 import lombok.AllArgsConstructor;
 import org.example.Repository.StudentRepository;
 import org.example.Repository.UnemployedRepository;
+import org.example.model.Reassignment;
 import org.example.model.Student;
 import org.example.model.Unemployed;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -32,6 +36,11 @@ public class UnemployedService {
     }
 
     public List<Unemployed> getAllUnemployed(){return unemployedRepository.findAll();}
+
+    public Slice<Unemployed> getUnemployedWithPagination(int page, int size){
+        Pageable pageable = PageRequest.of(page, size) ;
+        return unemployedRepository.findBy(pageable);
+    }
 
     public Unemployed updateUnemployed(Long id, Map<String, Object> updates){
         Unemployed unemployed = unemployedRepository.findById(id)

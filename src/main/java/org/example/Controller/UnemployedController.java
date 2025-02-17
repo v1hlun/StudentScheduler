@@ -2,8 +2,8 @@ package org.example.Controller;
 
 import lombok.AllArgsConstructor;
 import org.example.Service.UnemployedService;
-import org.example.model.Distribution;
 import org.example.model.Unemployed;
+import org.springframework.data.domain.Slice;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -27,6 +27,14 @@ public class UnemployedController {
 
     @GetMapping("/{id}")
     public Unemployed getUnemployedById(@PathVariable Long id){return unemployedService.getUnemployedById(id);}
+
+    @GetMapping
+    public Slice<Unemployed> getUnemployedWithPagination(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
+    ){
+        return unemployedService.getUnemployedWithPagination(page, size);
+    }
 
     @PatchMapping("/{id}")
     public Unemployed patchUpdateUnemployed(@PathVariable Long id,

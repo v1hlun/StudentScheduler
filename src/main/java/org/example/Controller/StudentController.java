@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import org.example.Service.StudentService;
 import org.example.model.Student;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Slice;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,6 +23,15 @@ public class StudentController {
     public List<Student> getAllStudents(){
         return studentService.getAllStudents();
     }
+
+    @GetMapping
+    public Slice<Student> getStudentsWithPagination(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "fullName") String sortBy){
+        return studentService.getStudentsWithPagination(page, size, sortBy);
+    }
+
 
     @GetMapping("/{id}")
     public Student getStudent (@PathVariable Long id){

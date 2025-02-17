@@ -6,6 +6,10 @@ import org.example.Repository.StudentRepository;
 import org.example.model.Distribution;
 import org.example.model.Student;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.util.ReflectionUtils;
 import org.springframework.stereotype.Service;
 
@@ -35,6 +39,11 @@ public class DistributionService {
     }
 
     public List<Distribution> getAllDistribution(){return distributionRepository.findAll();}
+
+    public Slice<Distribution> getDistributionsWithPagination(int page, int size){
+        Pageable pageable = PageRequest.of(page, size);
+        return distributionRepository.findBy(pageable);
+    }
 
 
     public Distribution updateDistribution(Long id, Map<String, Object> updates) {

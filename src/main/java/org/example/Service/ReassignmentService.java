@@ -6,6 +6,9 @@ import org.example.Repository.StudentRepository;
 import org.example.model.Reassignment;
 import org.example.model.Student;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -32,6 +35,11 @@ public class ReassignmentService {
     }
 
     public List<Reassignment> getAllReassignment(){return reassignmentRepository.findAll();}
+
+    public Slice<Reassignment> getReassignmentsWithPagination(int page, int size){
+        Pageable pageable = PageRequest.of(page, size) ;
+        return reassignmentRepository.findBy(pageable);
+    }
 
     public Reassignment updateReassignment(Long id, Map<String, Object> updates){
         Reassignment reassignment = reassignmentRepository.findByStudentId(id)

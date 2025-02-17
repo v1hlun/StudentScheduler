@@ -3,6 +3,7 @@ package org.example.Controller;
 import lombok.AllArgsConstructor;
 import org.example.Service.ReassignmentService;
 import org.example.model.Reassignment;
+import org.springframework.data.domain.Slice;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,6 +27,14 @@ public class ReassignmentController {
 
     @GetMapping("/{id}")
     public Reassignment getReassignmentById(Long id){return reassignmentService.getReassignmentById(id);}
+
+    @GetMapping
+    public Slice<Reassignment> getReassignmentsWithPagination(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
+    ){
+        return reassignmentService.getReassignmentsWithPagination(page, size);
+    }
 
     @PatchMapping("/update/{id}")
     public Reassignment patchUpdateReassignment(@PathVariable Long id,
