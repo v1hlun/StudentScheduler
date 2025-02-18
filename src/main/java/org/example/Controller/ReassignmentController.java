@@ -22,7 +22,7 @@ public class ReassignmentController {
         return reassignmentService.addReassignment(studentId, reassignment);
     }
 
-    @GetMapping
+    @GetMapping("/all")
     public List<Reassignment> getAllReassignments(){return reassignmentService.getAllReassignment();}
 
     @GetMapping("/{id}")

@@ -23,7 +23,7 @@ public class DistributionController {
 
     }
 
-    @GetMapping
+    @GetMapping("/all")
     public List<Distribution> getAllDistributions(){return distributionService.getAllDistribution();}
 
     @GetMapping("/{id}")

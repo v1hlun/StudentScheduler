@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Slice;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -19,7 +20,7 @@ public class StudentController {
     @Autowired
     private StudentService studentService;
 
-    @GetMapping
+    @GetMapping("/all")
     public List<Student> getAllStudents(){
         return studentService.getAllStudents();
     }
@@ -39,21 +40,21 @@ public class StudentController {
     }
 
     @PostMapping
-    public Student addStudent(@RequestBody Student student){
+    public Student addStudent(@RequestBody Student student) throws IOException {
         return studentService.addStudent(student);
     }
 
     @PutMapping("/{id}")
-    public Student updateStudent(@PathVariable Long id, @RequestBody Student updatedStudent){
+    public Student updateStudent(@PathVariable Long id, @RequestBody Student updatedStudent) throws IOException {
         return studentService.updateStudent(id, updatedStudent);
     }
 
     @PatchMapping("/{id}")
-    public Student patchStudent(@PathVariable Long id, @RequestBody Map<String, Object> updates){
+    public Student patchStudent(@PathVariable Long id, @RequestBody Map<String, Object> updates) throws IOException {
         return studentService.patchStudent(id, updates);
     }
 
     @DeleteMapping("/{id}")
-    public void deleteStudent(@PathVariable Long id){studentService.deleteStudentById(id);}
+    public void deleteStudent(@PathVariable Long id) throws IOException {studentService.deleteStudentById(id);}
 
 }

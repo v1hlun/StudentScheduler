@@ -10,6 +10,7 @@ import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -19,9 +20,12 @@ public class StudentService {
 
     @Autowired
     private StudentRepository studentRepository;
+    private WebSocketHandler webSocketHandler;
 
-    public Student addStudent(Student student){
-        return studentRepository.save(student);
+    public Student addStudent(Student student) throws IOException {
+        Student savedStudent = studentRepository.save(student);
+        webSocketHandler.sendUpdate("student", savedStudent);
+        return savedStudent;
     }
 
     public Student getStudentById(Long id){
@@ -38,11 +42,11 @@ public class StudentService {
         return studentRepository.findAll();
     }
 
-    public Student updateStudent(Long id,Student updatedStudent){
+    public Student updateStudent(Long id,Student updatedStudent) throws IOException {
         Student student = studentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Student not found"));
 
-        // Обновляем поля
+        /*// Обновляем поля
         student.setFullName(updatedStudent.getFullName());
         student.setAddress(updatedStudent.getAddress());
         student.setTelNumber(updatedStudent.getTelNumber());
@@ -53,14 +57,17 @@ public class StudentService {
         student.setPaidEducation(updatedStudent.getPaidEducation());
         student.setStepEducation(updatedStudent.getStepEducation());
         student.setYearOfGraduation(updatedStudent.getYearOfGraduation());
-        student.setConsolidation(updatedStudent.getConsolidation());
+        student.setConsolidation(updatedStudent.getConsolidation());*/
 
+        updatedStudent.setId(id);
+        Student savedStudent = studentRepository.save(updatedStudent);
+        webSocketHandler.sendUpdate("student", savedStudent);
 
-        return studentRepository.save(student);
+        return savedStudent;
     }
 
 
-    public Student patchStudent(Long id, Map<String,Object> updates){
+    public Student patchStudent(Long id, Map<String,Object> updates) throws IOException {
         Student student = studentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Student not found"));
 
@@ -80,8 +87,14 @@ public class StudentService {
                 default -> throw new RuntimeException("Invalid field: " + key);
             }
         });
-        return studentRepository.save(student);
+        Student updatedStudent = studentRepository.save(student);
+        webSocketHandler.sendUpdate("student", updatedStudent);
+
+        return updatedStudent;
     }
 
-    public void deleteStudentById(Long studentId){studentRepository.deleteById(studentId);}
+    public void deleteStudentById(Long studentId) throws IOException {
+        studentRepository.deleteById(studentId);
+        webSocketHandler.sendUpdate("student_deleted", studentId);
+    }
 }

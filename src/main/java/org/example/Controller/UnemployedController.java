@@ -22,7 +22,7 @@ public class UnemployedController {
 
     }
 
-    @GetMapping
+    @GetMapping("/all")
     public List<Unemployed> getAllUnemployed(){return unemployedService.getAllUnemployed();}
 
     @GetMapping("/{id}")
