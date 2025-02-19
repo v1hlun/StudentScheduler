@@ -2,13 +2,13 @@ version: '3.8'
 
 services:
   postgres:
-    image: postgres:16  
-    container_name: my_postgres  
-    restart: always  
+    image: postgres:16
+    container_name: my_postgres
+    restart: always
     environment:
-      POSTGRES_USER: postgres 
+      POSTGRES_USER: postgres
       POSTGRES_PASSWORD: admin
-      POSTGRES_DB: studentdb 
+      POSTGRES_DB: studentdb
     ports:
       - "5432:5432"  # Прокидываем порт PostgreSQL
     volumes:
@@ -31,4 +31,4 @@ services:
       - "8080:8080"
 
 volumes:
-  postgres_data:  # Объявляем том для хранения данных
+  postgres_data:
