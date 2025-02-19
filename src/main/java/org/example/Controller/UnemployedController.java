@@ -6,6 +6,7 @@ import org.example.model.Unemployed;
 import org.springframework.data.domain.Slice;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -17,7 +18,7 @@ public class UnemployedController {
 
     @PostMapping("/add/{studentId}")
     public Unemployed addUnemployedById(@PathVariable Long studentId,
-                                            @RequestBody Unemployed unemployed){
+                                            @RequestBody Unemployed unemployed) throws IOException {
         return unemployedService.addUnemployed(studentId,unemployed);
 
     }
@@ -38,11 +39,11 @@ public class UnemployedController {
 
     @PatchMapping("/{id}")
     public Unemployed patchUpdateUnemployed(@PathVariable Long id,
-                                            @RequestBody Map<String, Object> updates) {
+                                            @RequestBody Map<String, Object> updates) throws IOException {
         return unemployedService.updateUnemployed(id, updates);
     }
 
     @DeleteMapping("/delete/{id}")
-    public void deleteUnemployed(@PathVariable Long id){unemployedService.deleteUnemployed(id);}
+    public void deleteUnemployed(@PathVariable Long id) throws IOException {unemployedService.deleteUnemployed(id);}
 }
 

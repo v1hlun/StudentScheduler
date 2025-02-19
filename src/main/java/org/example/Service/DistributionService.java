@@ -13,6 +13,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.util.ReflectionUtils;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
@@ -22,15 +23,21 @@ import java.util.Map;
 public class DistributionService {
     @Autowired
     private DistributionRepository distributionRepository;
+    private WebSocketHandler webSocketHandler;
 
     @Autowired
     private StudentRepository studentRepository;
 
-    public Distribution addDistribution(Long studentId, Distribution distribution) {
+    public Distribution addDistribution(Long studentId, Distribution distribution) throws IOException {
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new RuntimeException("Student not found"));
+
+
         distribution.setStudent(student);
-        return distributionRepository.save(distribution);
+
+        Distribution saved = distributionRepository.save(distribution);
+        webSocketHandler.sendUpdate("distribution", saved);
+        return saved;
     }
 
     public Distribution getDistributionById(Long id){
@@ -46,7 +53,7 @@ public class DistributionService {
     }
 
 
-    public Distribution updateDistribution(Long id, Map<String, Object> updates) {
+    public Distribution updateDistribution(Long id, Map<String, Object> updates) throws IOException {
         Distribution distribution = distributionRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("No distribution with such id"));
 
@@ -74,14 +81,19 @@ public class DistributionService {
             }
         });
 
-        return distributionRepository.save(distribution);
+        Distribution updated = distributionRepository.save(distribution);
 
+        webSocketHandler.sendUpdate("distribution", updated);
+        return updated;
         }
 
 
 
-    public void deleteDistribution(Long id){
+    public void deleteDistribution(Long id) throws IOException {
         if(!distributionRepository.existsById(id)){throw new RuntimeException("No distribution with such id");}
-        distributionRepository.deleteById(id);}
+        distributionRepository.deleteById(id);
+
+        webSocketHandler.sendUpdate("distribution", "Distribution deleted: " + id);
+    }
 
 }

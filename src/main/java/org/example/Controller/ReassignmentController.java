@@ -6,6 +6,7 @@ import org.example.model.Reassignment;
 import org.springframework.data.domain.Slice;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -18,7 +19,7 @@ public class ReassignmentController {
 
     @PostMapping("add/{studentId}")
     public Reassignment addReassignment(@PathVariable Long studentId,
-                                        @RequestBody Reassignment reassignment){
+                                        @RequestBody Reassignment reassignment) throws IOException {
         return reassignmentService.addReassignment(studentId, reassignment);
     }
 
@@ -38,11 +39,11 @@ public class ReassignmentController {
 
     @PatchMapping("/update/{id}")
     public Reassignment patchUpdateReassignment(@PathVariable Long id,
-                                          @RequestBody Map<String, Object> updates){
+                                          @RequestBody Map<String, Object> updates) throws IOException {
         return reassignmentService.updateReassignment(id, updates);
     }
 
     @DeleteMapping("/delete/{id}")
-    public void deleteReassignment(Long id){reassignmentService.deleteReassignment(id);}
+    public void deleteReassignment(Long id) throws IOException {reassignmentService.deleteReassignment(id);}
 
 }

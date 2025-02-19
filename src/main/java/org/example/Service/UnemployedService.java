@@ -12,6 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -22,12 +23,16 @@ public class UnemployedService {
     private final UnemployedRepository unemployedRepository;
     @Autowired
     private final StudentRepository studentRepository;
+    private WebSocketHandler webSocketHandler;
 
-    public Unemployed addUnemployed(Long studentId, Unemployed unemployed){
+    public Unemployed addUnemployed(Long studentId, Unemployed unemployed) throws IOException {
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new RuntimeException("Student not found"));
         unemployed.setStudent(student);
-        return unemployedRepository.save(unemployed);
+
+        Unemployed saved = unemployedRepository.save(unemployed);
+        webSocketHandler.sendUpdate("unemployed", saved);
+        return saved;
     }
 
     public Unemployed getUnemployedById(Long id){
@@ -42,7 +47,7 @@ public class UnemployedService {
         return unemployedRepository.findBy(pageable);
     }
 
-    public Unemployed updateUnemployed(Long id, Map<String, Object> updates){
+    public Unemployed updateUnemployed(Long id, Map<String, Object> updates) throws IOException {
         Unemployed unemployed = unemployedRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("No unemployed with such id"));
 
@@ -61,13 +66,18 @@ public class UnemployedService {
                 case "consolidation" -> unemployed.setConsolidation((String) value);
             }
         });
+        Unemployed updated = unemployedRepository.save(unemployed);
+        webSocketHandler.sendUpdate("unemployed", updated);
 
-        return unemployedRepository.save(unemployed);
+        return updated;
     }
 
-    public void deleteUnemployed(Long id){
+    public void deleteUnemployed(Long id) throws IOException {
         if(!unemployedRepository.existsById(id)){throw new RuntimeException("No unemployed with such id");}
-        unemployedRepository.deleteById(id);}
+        unemployedRepository.deleteById(id);
+
+        webSocketHandler.sendUpdate("unemployed","unemployed deleted:" + id);
+    }
 
 
 }

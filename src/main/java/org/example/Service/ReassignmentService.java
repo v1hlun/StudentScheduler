@@ -11,6 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -21,12 +22,16 @@ public class ReassignmentService {
     private final ReassignmentRepository reassignmentRepository;
     @Autowired
     private final StudentRepository studentRepository;
+    private WebSocketHandler webSocketHandler;
 
-    public Reassignment addReassignment(Long studentId, Reassignment reassignment){
+    public Reassignment addReassignment(Long studentId, Reassignment reassignment) throws IOException {
         Student student = studentRepository.findById(studentId).
                 orElseThrow(() -> new RuntimeException("Student not fount"));
         reassignment.setStudent(student);
-        return reassignmentRepository.save(reassignment);
+
+        Reassignment saved = reassignmentRepository.save(reassignment);
+        webSocketHandler.sendUpdate("reassignment", saved);
+        return saved;
     }
 
     public Reassignment getReassignmentById(Long id){
@@ -41,7 +46,7 @@ public class ReassignmentService {
         return reassignmentRepository.findBy(pageable);
     }
 
-    public Reassignment updateReassignment(Long id, Map<String, Object> updates){
+    public Reassignment updateReassignment(Long id, Map<String, Object> updates) throws IOException {
         Reassignment reassignment = reassignmentRepository.findByStudentId(id)
                 .orElseThrow(() -> new RuntimeException("No reassignment with such id"));
 
@@ -56,13 +61,18 @@ public class ReassignmentService {
             }
         });
 
-        return reassignmentRepository.save(reassignment);
+        Reassignment updated = reassignmentRepository.save(reassignment);
+        webSocketHandler.sendUpdate("reassignment", updated);
+        return updated;
     }
 
-    public void deleteReassignment(Long id){
+    public void deleteReassignment(Long id) throws IOException {
         if (!reassignmentRepository.existsById(id)) {
             throw new RuntimeException("No reassignment with such id");
         }
-        reassignmentRepository.deleteById(id);};
+        reassignmentRepository.deleteById(id);
+
+        webSocketHandler.sendUpdate("reassignment","reassignment deleted:" + id);
+    };
 
 }

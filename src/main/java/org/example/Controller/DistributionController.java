@@ -6,6 +6,7 @@ import org.example.model.Distribution;
 import org.springframework.data.domain.Slice;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -18,7 +19,7 @@ public class DistributionController {
 
     @PostMapping("/add/{studentId}")
     public Distribution addDistributionById(@PathVariable Long studentId,
-                                        @RequestBody Distribution distribution){
+                                        @RequestBody Distribution distribution) throws IOException {
         return distributionService.addDistribution(studentId,distribution);
 
     }
@@ -39,11 +40,11 @@ public class DistributionController {
 
     @PatchMapping("/update/{id}")
     public Distribution patchUpdateDistribution(@PathVariable Long id,
-                                                @RequestBody Map<String, Object> updates){
+                                                @RequestBody Map<String, Object> updates) throws IOException {
         return  distributionService.updateDistribution(id, updates);
     }
 
     @DeleteMapping("/delete/{id}")
-    public void deleteDistribution(@PathVariable Long id){distributionService.deleteDistribution(id);}
+    public void deleteDistribution(@PathVariable Long id) throws IOException {distributionService.deleteDistribution(id);}
 
 }
