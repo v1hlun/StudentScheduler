@@ -1,6 +1,8 @@
 package org.example.Service;
 
 import lombok.AllArgsConstructor;
+import org.example.DTO.StudentDTO;
+import org.example.DTO.StudentMapper;
 import org.example.Repository.StudentRepository;
 import org.example.model.Student;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +15,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -22,52 +25,47 @@ public class StudentService {
     private StudentRepository studentRepository;
     private WebSocketHandler webSocketHandler;
 
-    public Student addStudent(Student student) throws IOException {
+    public StudentDTO addStudent(StudentDTO studentDTO) throws IOException {
+        Student student = StudentMapper.INSTANCE.toEntity(studentDTO);
         Student savedStudent = studentRepository.save(student);
         webSocketHandler.sendUpdate("student", savedStudent);
-        return savedStudent;
+        return StudentMapper.INSTANCE.toDto(savedStudent);
     }
 
-    public Student getStudentById(Long id){
-        return studentRepository.findById(id)
+    public StudentDTO getStudentById(Long id){
+        Student student =  studentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Student not found"))  ;
+        return StudentMapper.INSTANCE.toDto(student);
     }
 
-    public Slice<Student> getStudentsWithPagination(int page, int size, String sortBy){
+    public Slice<StudentDTO> getStudentsWithPagination(int page, int size, String sortBy){
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
-        return studentRepository.findBy(pageable);
+        return studentRepository.findBy(pageable).map(StudentMapper.INSTANCE::toDto);
     }
 
-    public List<Student> getAllStudents(){
-        return studentRepository.findAll();
+    public List<StudentDTO> getAllStudents(){
+        return studentRepository.findAll()
+                .stream()
+                .map(StudentMapper.INSTANCE::toDto)
+                .collect(Collectors.toList());
     }
 
-    public Student updateStudent(Long id,Student updatedStudent) throws IOException {
-        Student student = studentRepository.findById(id)
+
+    public StudentDTO updateStudent(Long id, StudentDTO studentDTO) throws IOException {
+        Student existingStudent = studentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Student not found"));
 
-        /*// Обновляем поля
-        student.setFullName(updatedStudent.getFullName());
-        student.setAddress(updatedStudent.getAddress());
-        student.setTelNumber(updatedStudent.getTelNumber());
-        student.setSpeciality(updatedStudent.getSpeciality());
-        student.setCode(updatedStudent.getCode());
-        student.setFaculty(updatedStudent.getFaculty());
-        student.setFormEducation(updatedStudent.getFormEducation());
-        student.setPaidEducation(updatedStudent.getPaidEducation());
-        student.setStepEducation(updatedStudent.getStepEducation());
-        student.setYearOfGraduation(updatedStudent.getYearOfGraduation());
-        student.setConsolidation(updatedStudent.getConsolidation());*/
-
+        Student updatedStudent = StudentMapper.INSTANCE.toEntity(studentDTO);
         updatedStudent.setId(id);
+
         Student savedStudent = studentRepository.save(updatedStudent);
         webSocketHandler.sendUpdate("student", savedStudent);
 
-        return savedStudent;
+        return StudentMapper.INSTANCE.toDto(savedStudent);
     }
 
 
-    public Student patchStudent(Long id, Map<String,Object> updates) throws IOException {
+    public StudentDTO patchStudent(Long id, Map<String,Object> updates) throws IOException {
         Student student = studentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Student not found"));
 
@@ -90,7 +88,7 @@ public class StudentService {
         Student updatedStudent = studentRepository.save(student);
         webSocketHandler.sendUpdate("student", updatedStudent);
 
-        return updatedStudent;
+        return StudentMapper.INSTANCE.toDto(updatedStudent);
     }
 
     public void deleteStudentById(Long studentId) throws IOException {
