@@ -1,6 +1,7 @@
 package org.example.Controller;
 
 import lombok.AllArgsConstructor;
+import org.example.DTO.DistributionDTO;
 import org.example.Service.DistributionService;
 import org.example.model.Distribution;
 import org.springframework.data.domain.Slice;
@@ -18,20 +19,20 @@ public class DistributionController {
     private final DistributionService distributionService;
 
     @PostMapping("/add/{studentId}")
-    public Distribution addDistributionById(@PathVariable Long studentId,
-                                        @RequestBody Distribution distribution) throws IOException {
-        return distributionService.addDistribution(studentId,distribution);
+    public DistributionDTO addDistributionById(@PathVariable Long studentId,
+                                               @RequestBody DistributionDTO distributionDTO) throws IOException {
+        return distributionService.addDistribution(studentId,distributionDTO);
 
     }
 
     @GetMapping("/all")
-    public List<Distribution> getAllDistributions(){return distributionService.getAllDistribution();}
+    public List<DistributionDTO> getAllDistributions(){return distributionService.getAllDistribution();}
 
     @GetMapping("/{id}")
-    public Distribution getDistributionById(@PathVariable Long id){return distributionService.getDistributionById(id);}
+    public DistributionDTO getDistributionById(@PathVariable Long id){return distributionService.getDistributionById(id);}
 
     @GetMapping
-    public Slice<Distribution> getDistributionsWithPagination(
+    public Slice<DistributionDTO> getDistributionsWithPagination(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size
     ) {
@@ -39,7 +40,7 @@ public class DistributionController {
     }
 
     @PatchMapping("/update/{id}")
-    public Distribution patchUpdateDistribution(@PathVariable Long id,
+    public DistributionDTO patchUpdateDistribution(@PathVariable Long id,
                                                 @RequestBody Map<String, Object> updates) throws IOException {
         return  distributionService.updateDistribution(id, updates);
     }

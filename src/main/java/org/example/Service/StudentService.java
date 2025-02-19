@@ -2,7 +2,7 @@ package org.example.Service;
 
 import lombok.AllArgsConstructor;
 import org.example.DTO.StudentDTO;
-import org.example.DTO.StudentMapper;
+import org.example.Mapper.StudentMapper;
 import org.example.Repository.StudentRepository;
 import org.example.model.Student;
 import org.springframework.beans.factory.annotation.Autowired;

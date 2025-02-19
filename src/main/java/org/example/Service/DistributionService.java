@@ -1,6 +1,8 @@
 package org.example.Service;
 
 import lombok.AllArgsConstructor;
+import org.example.DTO.DistributionDTO;
+import org.example.Mapper.DistributionMapper;
 import org.example.Repository.DistributionRepository;
 import org.example.Repository.StudentRepository;
 import org.example.model.Distribution;
@@ -9,14 +11,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.util.ReflectionUtils;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -28,32 +28,37 @@ public class DistributionService {
     @Autowired
     private StudentRepository studentRepository;
 
-    public Distribution addDistribution(Long studentId, Distribution distribution) throws IOException {
+    public DistributionDTO addDistribution(Long studentId, DistributionDTO distributionDTO) throws IOException {
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new RuntimeException("Student not found"));
 
-
+        Distribution distribution = DistributionMapper.INSTANCE.toEntity(distributionDTO);
         distribution.setStudent(student);
 
         Distribution saved = distributionRepository.save(distribution);
         webSocketHandler.sendUpdate("distribution", saved);
-        return saved;
+        return DistributionMapper.INSTANCE.toDto(saved);
     }
 
-    public Distribution getDistributionById(Long id){
-        return distributionRepository.findByStudentId(id)
+    public DistributionDTO getDistributionById(Long id){
+        Distribution distribution =  distributionRepository.findByStudentId(id)
                 .orElseThrow(() -> new RuntimeException("Student not found"));
+        return DistributionMapper.INSTANCE.toDto(distribution);
     }
 
-    public List<Distribution> getAllDistribution(){return distributionRepository.findAll();}
+    public List<DistributionDTO> getAllDistribution(){
+        return distributionRepository.findAll().stream()
+                .map(DistributionMapper.INSTANCE::toDto)
+                .collect(Collectors.toList());
+    }
 
-    public Slice<Distribution> getDistributionsWithPagination(int page, int size){
+    public Slice<DistributionDTO> getDistributionsWithPagination(int page, int size){
         Pageable pageable = PageRequest.of(page, size);
-        return distributionRepository.findBy(pageable);
+        return distributionRepository.findBy(pageable).map(DistributionMapper.INSTANCE::toDto);
     }
 
 
-    public Distribution updateDistribution(Long id, Map<String, Object> updates) throws IOException {
+    public DistributionDTO updateDistribution(Long id, Map<String, Object> updates) throws IOException {
         Distribution distribution = distributionRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("No distribution with such id"));
 
@@ -84,7 +89,7 @@ public class DistributionService {
         Distribution updated = distributionRepository.save(distribution);
 
         webSocketHandler.sendUpdate("distribution", updated);
-        return updated;
+        return DistributionMapper.INSTANCE.toDto(updated);
         }
 
 
