@@ -10,6 +10,7 @@ import lombok.Setter;
 public class DistributionDTO {
     private Long id;
     private Long studentId;
+    private String fullName;
     private String profiling;
     private String nameCompany;
     private String nameCompanyObl;
