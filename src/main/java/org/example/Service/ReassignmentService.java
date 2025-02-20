@@ -1,6 +1,8 @@
 package org.example.Service;
 
 import lombok.AllArgsConstructor;
+import org.example.DTO.ReassignmentDTO;
+import org.example.Mapper.ReassignmentMapper;
 import org.example.Repository.ReassignmentRepository;
 import org.example.Repository.StudentRepository;
 import org.example.model.Reassignment;
@@ -12,8 +14,10 @@ import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -24,30 +28,42 @@ public class ReassignmentService {
     private final StudentRepository studentRepository;
     private WebSocketHandler webSocketHandler;
 
-    public Reassignment addReassignment(Long studentId, Reassignment reassignment) throws IOException {
-        Student student = studentRepository.findById(studentId).
-                orElseThrow(() -> new RuntimeException("Student not fount"));
+    // Добавление нового Reassignment
+    public ReassignmentDTO addReassignment(Long studentId, ReassignmentDTO reassignmentDTO) throws IOException {
+        Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new RuntimeException("Student not found"));
+
+        Reassignment reassignment = ReassignmentMapper.INSTANCE.toEntity(reassignmentDTO);
         reassignment.setStudent(student);
 
         Reassignment saved = reassignmentRepository.save(reassignment);
-        webSocketHandler.sendUpdate("reassignment", saved);
-        return saved;
+        webSocketHandler.sendUpdate("reassignment", toDTOWithStudent(saved));
+        return toDTOWithStudent(saved);
     }
 
-    public Reassignment getReassignmentById(Long id){
-        return reassignmentRepository.findByStudentId(id).
-                orElseThrow(() -> new RuntimeException("Student not found"));
+    // Получение Reassignment по ID
+    public ReassignmentDTO getReassignmentById(Long id) {
+        Reassignment reassignment = reassignmentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Reassignment not found"));
+        return toDTOWithStudent(reassignment);
     }
 
-    public List<Reassignment> getAllReassignment(){return reassignmentRepository.findAll();}
-
-    public Slice<Reassignment> getReassignmentsWithPagination(int page, int size){
-        Pageable pageable = PageRequest.of(page, size) ;
-        return reassignmentRepository.findBy(pageable);
+    // Получение всех Reassignment
+    public List<ReassignmentDTO> getAllReassignment() {
+        return reassignmentRepository.findAll().stream()
+                .map(this::toDTOWithStudent)
+                .collect(Collectors.toList());
     }
 
-    public Reassignment updateReassignment(Long id, Map<String, Object> updates) throws IOException {
-        Reassignment reassignment = reassignmentRepository.findByStudentId(id)
+    // Получение Reassignment с пагинацией
+    public Slice<ReassignmentDTO> getReassignmentsWithPagination(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return reassignmentRepository.findBy(pageable).map(this::toDTOWithStudent);
+    }
+
+    // Обновление Reassignment
+    public ReassignmentDTO updateReassignment(Long id, Map<String, Object> updates) throws IOException {
+        Reassignment reassignment = reassignmentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("No reassignment with such id"));
 
         updates.forEach((key, value) -> {
@@ -62,17 +78,28 @@ public class ReassignmentService {
         });
 
         Reassignment updated = reassignmentRepository.save(reassignment);
-        webSocketHandler.sendUpdate("reassignment", updated);
-        return updated;
+        webSocketHandler.sendUpdate("reassignment", toDTOWithStudent(updated));
+        return toDTOWithStudent(updated);
     }
 
+    // Удаление Reassignment
     public void deleteReassignment(Long id) throws IOException {
         if (!reassignmentRepository.existsById(id)) {
             throw new RuntimeException("No reassignment with such id");
         }
         reassignmentRepository.deleteById(id);
+        webSocketHandler.sendUpdate("reassignment", "Reassignment deleted: " + id);
+    }
 
-        webSocketHandler.sendUpdate("reassignment","reassignment deleted:" + id);
-    };
 
+    private ReassignmentDTO toDTOWithStudent(Reassignment reassignment) {
+        ReassignmentDTO dto = ReassignmentMapper.INSTANCE.toDto(reassignment);
+        Student student = reassignment.getStudent();
+        if (student != null) {
+            dto.setStudentId(student.getId());
+            dto.setFullName(student.getFullName());
+            dto.setAddress(student.getAddress());
+        }
+        return dto;
+    }
 }

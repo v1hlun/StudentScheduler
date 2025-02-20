@@ -1,8 +1,8 @@
 package org.example.Controller;
 
 import lombok.AllArgsConstructor;
+import org.example.DTO.ReassignmentDTO;
 import org.example.Service.ReassignmentService;
-import org.example.model.Reassignment;
 import org.springframework.data.domain.Slice;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,19 +18,19 @@ public class ReassignmentController {
     private final ReassignmentService reassignmentService;
 
     @PostMapping("add/{studentId}")
-    public Reassignment addReassignment(@PathVariable Long studentId,
-                                        @RequestBody Reassignment reassignment) throws IOException {
-        return reassignmentService.addReassignment(studentId, reassignment);
+    public ReassignmentDTO addReassignment(@PathVariable Long studentId,
+                                           @RequestBody ReassignmentDTO reassignmentDTO) throws IOException {
+        return reassignmentService.addReassignment(studentId, reassignmentDTO);
     }
 
     @GetMapping("/all")
-    public List<Reassignment> getAllReassignments(){return reassignmentService.getAllReassignment();}
+    public List<ReassignmentDTO> getAllReassignments(){return reassignmentService.getAllReassignment();}
 
     @GetMapping("/{id}")
-    public Reassignment getReassignmentById(Long id){return reassignmentService.getReassignmentById(id);}
+    public ReassignmentDTO getReassignmentById(@PathVariable Long id){return reassignmentService.getReassignmentById(id);}
 
     @GetMapping
-    public Slice<Reassignment> getReassignmentsWithPagination(
+    public Slice<ReassignmentDTO> getReassignmentsWithPagination(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size
     ){
@@ -38,12 +38,12 @@ public class ReassignmentController {
     }
 
     @PatchMapping("/update/{id}")
-    public Reassignment patchUpdateReassignment(@PathVariable Long id,
-                                          @RequestBody Map<String, Object> updates) throws IOException {
+    public ReassignmentDTO patchUpdateReassignment(@PathVariable Long id,
+                                                   @RequestBody Map<String, Object> updates) throws IOException {
         return reassignmentService.updateReassignment(id, updates);
     }
 
     @DeleteMapping("/delete/{id}")
-    public void deleteReassignment(Long id) throws IOException {reassignmentService.deleteReassignment(id);}
+    public void deleteReassignment(@PathVariable  Long id) throws IOException {reassignmentService.deleteReassignment(id);}
 
 }

@@ -2,22 +2,24 @@ package org.example.Mapper;
 
 
 import org.example.DTO.DistributionDTO;
+import org.example.DTO.ReassignmentDTO;
 import org.example.DTO.StudentDTO;
 import org.example.model.Distribution;
+import org.example.model.Reassignment;
 import org.example.model.Student;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
 @Mapper
-public interface DistributionMapper {
-    DistributionMapper INSTANCE = Mappers.getMapper(DistributionMapper.class);
+public interface ReassignmentMapper {
+    ReassignmentMapper INSTANCE = Mappers.getMapper(ReassignmentMapper.class);
 
     @Mapping(source = "student.id", target = "studentId")
-    DistributionDTO toDto(Distribution entity);
+    ReassignmentDTO toDto(Reassignment entity);
 
     @Mapping(source = "studentId", target = "student.id")
-    Distribution toEntity(DistributionDTO dto);
+    Reassignment toEntity(ReassignmentDTO dto);
 
     default StudentDTO studentToStudentDTO(Student student) {
         if (student == null) {
