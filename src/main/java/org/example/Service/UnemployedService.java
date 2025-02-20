@@ -1,10 +1,12 @@
 package org.example.Service;
 
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.example.DTO.UnemployedDTO;
 import org.example.Mapper.UnemployedMapper;
 import org.example.Repository.StudentRepository;
 import org.example.Repository.UnemployedRepository;
+import org.example.model.Distribution;
 import org.example.model.Student;
 import org.example.model.Unemployed;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +18,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -80,11 +83,26 @@ public class UnemployedService {
         return toDTOWithStudent(updated);
     }
 
+    @Transactional
     public void deleteUnemployed(Long id) throws IOException {
-        if(!unemployedRepository.existsById(id)){throw new RuntimeException("No unemployed with such id");}
-        unemployedRepository.deleteById(id);
+        Optional<Unemployed> unemployedOpt = unemployedRepository.findById(id);
+        if (unemployedOpt.isEmpty()) {
+            throw new RuntimeException("No unemployed with such id");
+        }
 
-        webSocketHandler.sendUpdate("unemployed","unemployed deleted:" + id);
+        Unemployed unemployed = unemployedOpt.get();
+
+        // Находим связанного Student и разрываем связь
+        Student student = studentRepository.findByUnemployed(unemployed);
+        if (student != null) {
+            student.setUnemployed(null);
+            studentRepository.save(student);
+            webSocketHandler.sendUpdate("student", "Student updated: " + student.getId());
+        }
+
+        // Теперь удаляем Distribution
+        unemployedRepository.delete(unemployed);
+        webSocketHandler.sendUpdate("unemployed", "Unemployed deleted: " + id);
     }
 
     private UnemployedDTO toDTOWithStudent(Unemployed unemployed) {

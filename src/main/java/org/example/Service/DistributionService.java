@@ -1,5 +1,6 @@
 package org.example.Service;
 
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.example.DTO.DistributionDTO;
 import org.example.Mapper.DistributionMapper;
@@ -18,6 +19,7 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -92,13 +94,28 @@ public class DistributionService {
         return toDTOWithStudent(updated);
     }
 
+    @Transactional
     public void deleteDistribution(Long id) throws IOException {
-        if (!distributionRepository.existsById(id)) {
+        Optional<Distribution> distributionOpt = distributionRepository.findById(id);
+        if (distributionOpt.isEmpty()) {
             throw new RuntimeException("No distribution with such id");
         }
-        distributionRepository.deleteById(id);
+
+        Distribution distribution = distributionOpt.get();
+
+        // Находим связанного Student и разрываем связь
+        Student student = studentRepository.findByDistribution(distribution);
+        if (student != null) {
+            student.setDistribution(null);
+            studentRepository.save(student);
+            webSocketHandler.sendUpdate("student", "Student updated: " + student.getId());
+        }
+
+        // Теперь удаляем Distribution
+        distributionRepository.delete(distribution);
         webSocketHandler.sendUpdate("distribution", "Distribution deleted: " + id);
     }
+
 
     private DistributionDTO toDTOWithStudent(Distribution distribution) {
         DistributionDTO dto = DistributionMapper.INSTANCE.toDto(distribution);

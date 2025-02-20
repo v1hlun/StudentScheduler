@@ -12,11 +12,13 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -83,13 +85,28 @@ public class ReassignmentService {
     }
 
     // Удаление Reassignment
+    @Transactional
     public void deleteReassignment(Long id) throws IOException {
-        if (!reassignmentRepository.existsById(id)) {
+        Optional<Reassignment> reassignmentOpt = reassignmentRepository.findById(id);
+        if (reassignmentOpt.isEmpty()) {
             throw new RuntimeException("No reassignment with such id");
         }
-        reassignmentRepository.deleteById(id);
+
+        Reassignment reassignment = reassignmentOpt.get();
+
+        // Находим связанного Student и разрываем связь
+        Student student = studentRepository.findByReassignment(reassignment);
+        if (student != null) {
+            student.setReassignment(null);
+            studentRepository.save(student);
+            webSocketHandler.sendUpdate("student", "Student updated: " + student.getId());
+        }
+
+        // Теперь удаляем Distribution
+        reassignmentRepository.delete(reassignment);
         webSocketHandler.sendUpdate("reassignment", "Reassignment deleted: " + id);
     }
+
 
 
     private ReassignmentDTO toDTOWithStudent(Reassignment reassignment) {
