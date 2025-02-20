@@ -8,12 +8,14 @@ import org.example.Repository.StudentRepository;
 import org.example.model.Distribution;
 import org.example.model.Student;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -37,26 +39,25 @@ public class DistributionService {
 
         Distribution saved = distributionRepository.save(distribution);
         webSocketHandler.sendUpdate("distribution", saved);
-        return DistributionMapper.INSTANCE.toDto(saved);
+        return toDTOWithStudent(saved);
     }
 
-    public DistributionDTO getDistributionById(Long id){
-        Distribution distribution =  distributionRepository.findByStudentId(id)
-                .orElseThrow(() -> new RuntimeException("Student not found"));
-        return DistributionMapper.INSTANCE.toDto(distribution);
+    public DistributionDTO getDistributionById(Long id) {
+        Distribution distribution = distributionRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Distribution not found"));
+        return toDTOWithStudent(distribution);
     }
 
-    public List<DistributionDTO> getAllDistribution(){
+    public List<DistributionDTO> getAllDistribution() {
         return distributionRepository.findAll().stream()
-                .map(DistributionMapper.INSTANCE::toDto)
+                .map(this::toDTOWithStudent)
                 .collect(Collectors.toList());
     }
 
-    public Slice<DistributionDTO> getDistributionsWithPagination(int page, int size){
+    public Slice<DistributionDTO> getDistributionsWithPagination(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        return distributionRepository.findBy(pageable).map(DistributionMapper.INSTANCE::toDto);
+        return distributionRepository.findBy(pageable).map(this::toDTOWithStudent);
     }
-
 
     public DistributionDTO updateDistribution(Long id, Map<String, Object> updates) throws IOException {
         Distribution distribution = distributionRepository.findById(id)
@@ -87,18 +88,26 @@ public class DistributionService {
         });
 
         Distribution updated = distributionRepository.save(distribution);
-
         webSocketHandler.sendUpdate("distribution", updated);
-        return DistributionMapper.INSTANCE.toDto(updated);
-        }
-
-
+        return toDTOWithStudent(updated);
+    }
 
     public void deleteDistribution(Long id) throws IOException {
-        if(!distributionRepository.existsById(id)){throw new RuntimeException("No distribution with such id");}
+        if (!distributionRepository.existsById(id)) {
+            throw new RuntimeException("No distribution with such id");
+        }
         distributionRepository.deleteById(id);
-
         webSocketHandler.sendUpdate("distribution", "Distribution deleted: " + id);
     }
 
+    private DistributionDTO toDTOWithStudent(Distribution distribution) {
+        DistributionDTO dto = DistributionMapper.INSTANCE.toDto(distribution);
+        Student student = distribution.getStudent();
+        if (student != null) {
+            dto.setStudentId(student.getId());
+            dto.setFullName(student.getFullName());
+            dto.setAddress(student.getAddress());
+        }
+        return dto;
+    }
 }
