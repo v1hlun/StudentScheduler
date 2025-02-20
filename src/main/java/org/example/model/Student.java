@@ -37,5 +37,6 @@ public class Student {
     private Reassignment reassignment;
 
     @OneToOne(mappedBy = "student", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
     private Unemployed unemployed;
 }

@@ -1,9 +1,10 @@
 package org.example.Service;
 
 import lombok.AllArgsConstructor;
+import org.example.DTO.UnemployedDTO;
+import org.example.Mapper.UnemployedMapper;
 import org.example.Repository.StudentRepository;
 import org.example.Repository.UnemployedRepository;
-import org.example.model.Reassignment;
 import org.example.model.Student;
 import org.example.model.Unemployed;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -25,29 +27,35 @@ public class UnemployedService {
     private final StudentRepository studentRepository;
     private WebSocketHandler webSocketHandler;
 
-    public Unemployed addUnemployed(Long studentId, Unemployed unemployed) throws IOException {
+    public UnemployedDTO addUnemployed(Long studentId, UnemployedDTO unemployedDTO) throws IOException {
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new RuntimeException("Student not found"));
+
+        Unemployed unemployed = UnemployedMapper.INSTANCE.toEntity(unemployedDTO);
         unemployed.setStudent(student);
 
         Unemployed saved = unemployedRepository.save(unemployed);
-        webSocketHandler.sendUpdate("unemployed", saved);
-        return saved;
+        webSocketHandler.sendUpdate("unemployed", toDTOWithStudent(saved));
+        return toDTOWithStudent(saved);
     }
 
-    public Unemployed getUnemployedById(Long id){
-        return unemployedRepository.findByStudentId(id)
-                .orElseThrow(() -> new RuntimeException("Student not found"));
+    public UnemployedDTO getUnemployedById(Long id) {
+        Unemployed unemployed = unemployedRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Unemployed not found"));
+        return toDTOWithStudent(unemployed);
     }
 
-    public List<Unemployed> getAllUnemployed(){return unemployedRepository.findAll();}
-
-    public Slice<Unemployed> getUnemployedWithPagination(int page, int size){
-        Pageable pageable = PageRequest.of(page, size) ;
-        return unemployedRepository.findBy(pageable);
+    public List<UnemployedDTO> getAllUnemployed(){
+        return unemployedRepository.findAll().stream()
+                .map(this::toDTOWithStudent)
+                .collect(Collectors.toList());
     }
 
-    public Unemployed updateUnemployed(Long id, Map<String, Object> updates) throws IOException {
+    public Slice<UnemployedDTO> getUnemployedWithPagination(int page, int size){
+        Pageable pageable = PageRequest.of(page, size);
+        return unemployedRepository.findBy(pageable).map(this::toDTOWithStudent);    }
+
+    public UnemployedDTO updateUnemployed(Long id, Map<String, Object> updates) throws IOException {
         Unemployed unemployed = unemployedRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("No unemployed with such id"));
 
@@ -67,9 +75,9 @@ public class UnemployedService {
             }
         });
         Unemployed updated = unemployedRepository.save(unemployed);
-        webSocketHandler.sendUpdate("unemployed", updated);
+        webSocketHandler.sendUpdate("unemployed", toDTOWithStudent(updated));
 
-        return updated;
+        return toDTOWithStudent(updated);
     }
 
     public void deleteUnemployed(Long id) throws IOException {
@@ -79,5 +87,15 @@ public class UnemployedService {
         webSocketHandler.sendUpdate("unemployed","unemployed deleted:" + id);
     }
 
+    private UnemployedDTO toDTOWithStudent(Unemployed unemployed) {
+        UnemployedDTO dto = UnemployedMapper.INSTANCE.toDto(unemployed);
+        Student student = unemployed.getStudent();
+        if (student != null) {
+            dto.setStudentId(student.getId());
+            dto.setFullName(student.getFullName());
+            dto.setAddress(student.getAddress());
+        }
+        return dto;
+    }
 
 }
