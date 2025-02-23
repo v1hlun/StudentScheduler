@@ -1,62 +1,53 @@
 package org.example.Controller;
 
-import org.example.model.User;
-import org.example.Repository.UserRepository;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.example.DTO.LoginRequest;
-import org.example.DTO.JwtResponse;
 import org.example.Util.JwtUtil;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.Optional;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/auth")
+@RequiredArgsConstructor
 public class AuthController {
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
+    @Autowired
+    private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
 
-    public AuthController(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtUtil jwtUtil) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.jwtUtil = jwtUtil;
-    }
-
     @PostMapping("/login")
-    public JwtResponse login(@RequestBody LoginRequest request) {
-        Optional<User> userOptional = userRepository.findByUsername(request.getUsername());
+    public ResponseEntity<?> login(@RequestBody LoginRequest request, HttpServletResponse response) {
+        try {
 
-        if (userOptional.isPresent()) {
-            User user = userOptional.get();
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
+            );
 
+            // Генерация JWT-токена
+            String jwt = jwtUtil.generateToken(request.getUsername());
 
-            if (passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-                String token = jwtUtil.generateToken(user.getUsername());
-                return new JwtResponse(token);
-            }
+            // Создаем куки с токеном
+            Cookie cookie = new Cookie("jwtToken", jwt);
+            cookie.setHttpOnly(true); // Защита от XSS
+            cookie.setSecure(true); // Для HTTPS
+            cookie.setPath("/"); // Доступно для всех путей
+            cookie.setMaxAge(7 * 24 * 60 * 60); // Время жизни куки (7 дней)
+
+            // Добавляем куки в ответ
+            response.addCookie(cookie);
+
+            return ResponseEntity.ok().build();
+        } catch (AuthenticationException e) {
+            return ResponseEntity.status(401).body("Invalid credentials");
         }
-        throw new RuntimeException("Invalid credentials");
-
-        /*if (userOptional.isPresent()) {
-            User user = userOptional.get();
-
-            System.out.println("Хеш пароля в БД: " + user.getPassword()); // Вывод хеша пароля
-            System.out.println("Введенный пароль: " + request.getPassword());
-            System.out.println("Хеш введенного пароля: " + passwordEncoder.encode(request.getPassword()));
-
-            if (passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-                String token = jwtUtil.generateToken(user.getUsername());
-                System.out.println("Пароль совпадает, токен выдан!");
-                return new JwtResponse(token);
-            } else {
-                System.out.println("Пароль НЕ совпадает!");
-            }
-        } else {
-            System.out.println("Пользователь не найден!");
-        }
-        throw new RuntimeException("Invalid credentials");*/
     }
-
 }
