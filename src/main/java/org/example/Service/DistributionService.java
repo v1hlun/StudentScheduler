@@ -75,6 +75,9 @@ public class DistributionService {
                 case "basedNameCompany" -> distribution.setBasedNameCompany((String) value);
                 case "otherOrganization" -> distribution.setOtherOrganization((String) value);
                 case "writedRequestofDistribution" -> distribution.setWritedRequestofDistribution((String) value);
+                case "targetAgreement" -> distribution.setTargetAgreement((String) value);
+                case "olympiad" -> distribution.setOlympiad((String) value);
+                case "confirmationArrivalEnterprise" -> distribution.setConfirmationArrivalEnterprise((String) value);
                 case "jobTitle" -> distribution.setJobTitle((String) value);
                 case "working" -> distribution.setWorking((String) value);
                 case "servesArmy" -> distribution.setServesArmy((String) value);
