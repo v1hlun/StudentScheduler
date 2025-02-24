@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import org.example.DTO.UnemployedDTO;
 import org.example.Service.UnemployedService;
 import org.springframework.data.domain.Slice;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -17,9 +18,9 @@ public class UnemployedController {
     private final UnemployedService unemployedService;
 
     @PostMapping("/add/{studentId}")
-    public UnemployedDTO addUnemployedById(@PathVariable Long studentId,
-                                            @RequestBody UnemployedDTO unemployedDTO) throws IOException {
-        return unemployedService.addUnemployed(studentId,unemployedDTO);
+    public ResponseEntity<UnemployedDTO> addUnemployedById(@PathVariable Long studentId,
+                                                           @RequestBody UnemployedDTO unemployedDTO) throws IOException {
+        return ResponseEntity.status(201).body(unemployedService.addUnemployed(studentId,unemployedDTO));
 
     }
 
@@ -38,12 +39,20 @@ public class UnemployedController {
     }
 
     @PatchMapping("/update/{id}")
-    public UnemployedDTO patchUpdateUnemployed(@PathVariable Long id,
-                                               @RequestBody Map<String, Object> updates) throws IOException {
-        return unemployedService.updateUnemployed(id, updates);
+    public ResponseEntity<UnemployedDTO> patchUpdateUnemployed(@PathVariable Long id,
+                                                               @RequestBody Map<String, Object> updates) throws IOException {
+        try {
+            return ResponseEntity.ok().body(unemployedService.updateUnemployed(id, updates));
+        }
+        catch (RuntimeException e){
+            return ResponseEntity.status(404).body(null);
+        }
     }
 
     @DeleteMapping("/delete/{id}")
-    public void deleteUnemployed(@PathVariable Long id) throws IOException {unemployedService.deleteUnemployed(id);}
+    public ResponseEntity<?> deleteUnemployed(@PathVariable Long id) throws IOException {
+        unemployedService.deleteUnemployed(id);
+        return ResponseEntity.status(204).build();
+    }
 }
 

@@ -3,8 +3,8 @@ package org.example.Controller;
 import lombok.AllArgsConstructor;
 import org.example.DTO.DistributionDTO;
 import org.example.Service.DistributionService;
-import org.example.model.Distribution;
 import org.springframework.data.domain.Slice;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -19,9 +19,9 @@ public class DistributionController {
     private final DistributionService distributionService;
 
     @PostMapping("/add/{studentId}")
-    public DistributionDTO addDistributionById(@PathVariable Long studentId,
-                                               @RequestBody DistributionDTO distributionDTO) throws IOException {
-        return distributionService.addDistribution(studentId,distributionDTO);
+    public ResponseEntity<DistributionDTO> addDistributionById(@PathVariable Long studentId,
+                                                               @RequestBody DistributionDTO distributionDTO) throws IOException {
+        return ResponseEntity.status(201).body(distributionService.addDistribution(studentId,distributionDTO)) ;
 
     }
 
@@ -40,12 +40,20 @@ public class DistributionController {
     }
 
     @PatchMapping("/update/{id}")
-    public DistributionDTO patchUpdateDistribution(@PathVariable Long id,
-                                                @RequestBody Map<String, Object> updates) throws IOException {
-        return  distributionService.updateDistribution(id, updates);
+    public ResponseEntity<DistributionDTO> patchUpdateDistribution(@PathVariable Long id,
+                                                                   @RequestBody Map<String, Object> updates) throws IOException {
+        try {
+            return ResponseEntity.ok().body(distributionService.updateDistribution(id, updates)) ;
+        }
+        catch (RuntimeException e){
+           return ResponseEntity.status(404).body(null);
+        }
     }
 
     @DeleteMapping("/delete/{id}")
-    public void deleteDistribution(@PathVariable Long id) throws IOException {distributionService.deleteDistribution(id);}
+    public ResponseEntity<?> deleteDistribution(@PathVariable Long id) throws IOException {
+        distributionService.deleteDistribution(id);
+        return ResponseEntity.status(204).build();
+    }
 
 }

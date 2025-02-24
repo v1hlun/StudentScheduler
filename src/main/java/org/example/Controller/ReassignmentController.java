@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import org.example.DTO.ReassignmentDTO;
 import org.example.Service.ReassignmentService;
 import org.springframework.data.domain.Slice;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -18,9 +19,9 @@ public class ReassignmentController {
     private final ReassignmentService reassignmentService;
 
     @PostMapping("add/{studentId}")
-    public ReassignmentDTO addReassignment(@PathVariable Long studentId,
-                                           @RequestBody ReassignmentDTO reassignmentDTO) throws IOException {
-        return reassignmentService.addReassignment(studentId, reassignmentDTO);
+    public ResponseEntity<ReassignmentDTO> addReassignment(@PathVariable Long studentId,
+                                                           @RequestBody ReassignmentDTO reassignmentDTO) throws IOException {
+        return ResponseEntity.status(201).body(reassignmentService.addReassignment(studentId, reassignmentDTO)) ;
     }
 
     @GetMapping("/all")
@@ -38,12 +39,21 @@ public class ReassignmentController {
     }
 
     @PatchMapping("/update/{id}")
-    public ReassignmentDTO patchUpdateReassignment(@PathVariable Long id,
-                                                   @RequestBody Map<String, Object> updates) throws IOException {
-        return reassignmentService.updateReassignment(id, updates);
+    public ResponseEntity<ReassignmentDTO> patchUpdateReassignment(@PathVariable Long id,
+                                                                   @RequestBody Map<String, Object> updates) throws IOException {
+        try {
+            return ResponseEntity.ok().body(reassignmentService.updateReassignment(id, updates)) ;
+        }
+        catch (RuntimeException e){
+            return ResponseEntity.status(404).body(null);
+        }
+
     }
 
     @DeleteMapping("/delete/{id}")
-    public void deleteReassignment(@PathVariable  Long id) throws IOException {reassignmentService.deleteReassignment(id);}
+    public ResponseEntity<?> deleteReassignment(@PathVariable  Long id) throws IOException {
+        reassignmentService.deleteReassignment(id);
+        return ResponseEntity.status(204).build();
+    }
 
 }
